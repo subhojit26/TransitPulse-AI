@@ -12,4 +12,12 @@ public final class CrowdLabelUtil {
         if (occupancyPercent <= 90) return "HIGH";
         return "FULL";
     }
+
+    public static String fromOccupancyEmoji(Integer occupancyPercent) {
+        if (occupancyPercent == null) return "UNKNOWN";
+        if (occupancyPercent <= 30) return "Comfortable \uD83D\uDFE2";
+        if (occupancyPercent <= 60) return "Moderate \uD83D\uDFE1";
+        if (occupancyPercent <= 80) return "Crowded \uD83D\uDFE0";
+        return "Very Crowded \uD83D\uDD34";
+    }
 }

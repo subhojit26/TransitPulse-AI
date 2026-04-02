@@ -1,0 +1,32 @@
+server:
+  port: ${GPS_SIMULATOR_PORT:8084}
+
+spring:
+  application:
+    name: gps-simulator
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+      acks: 1
+      retries: 3
+
+simulator:
+  tick-rate-ms: 3000
+  interpolation-factor: 0.10
+  breakdown-probability: 0.001
+  rush-hour-speed-factor: 0.5
+
+logging:
+  level:
+    com.transitpulse: DEBUG

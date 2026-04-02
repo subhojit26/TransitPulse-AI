@@ -1,0 +1,27 @@
+server:
+  port: ${STREAM_PROCESSOR_PORT:8085}
+
+spring:
+  application:
+    name: stream-processor
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    streams:
+      application-id: transitpulse-stream-processor
+      properties:
+        default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        default.value.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+        commit.interval.ms: 1000
+        num.stream.threads: 2
+
+logging:
+  level:
+    com.transitpulse: DEBUG
+    org.apache.kafka.streams: INFO

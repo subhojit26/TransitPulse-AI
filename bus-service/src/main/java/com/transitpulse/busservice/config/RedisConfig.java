@@ -1,4 +1,4 @@
-package com.transitpulse.commuterservice.config;
+package com.transitpulse.busservice.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

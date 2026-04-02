@@ -1,5 +1,6 @@
 package com.transitpulse.commuterservice.service;
 
+import com.transitpulse.common.dto.BusEtaEvent;
 import com.transitpulse.common.dto.BusLocationEvent;
 import com.transitpulse.common.dto.IncomingBusDto;
 import com.transitpulse.common.dto.NearbyStopDto;
@@ -59,19 +60,36 @@ public class CommuterService {
         for (Bus bus : activeBuses) {
             Integer occupancy = null;
             String crowdLabel = "UNKNOWN";
+            String eta = "calculating...";
 
-            // Try Redis first for live data
+            // Try Redis ETA cache first for real-time ETA
+            Optional<BusEtaEvent> etaEvent = liveBusCacheReader.getEta(bus.getId());
+            if (etaEvent.isPresent()) {
+                BusEtaEvent etaData = etaEvent.get();
+                double etaMinutes = etaData.getEtaMinutes() != null ? etaData.getEtaMinutes() : 0.0;
+                eta = String.format("%.1f min", etaMinutes);
+                if (etaData.getOccupancyPercent() != null) {
+                    occupancy = etaData.getOccupancyPercent();
+                }
+                if (etaData.getCrowdLabel() != null) {
+                    crowdLabel = etaData.getCrowdLabel();
+                }
+            }
+
+            // Try Redis live data for occupancy (fallback / more recent)
             Optional<BusLocationEvent> liveData = liveBusCacheReader.getLiveLocation(bus.getId());
             if (liveData.isPresent()) {
-                occupancy = liveData.get().getOccupancyPercent();
-                crowdLabel = CrowdLabelUtil.fromOccupancy(occupancy);
-            } else {
+                if (occupancy == null) {
+                    occupancy = liveData.get().getOccupancyPercent();
+                    crowdLabel = CrowdLabelUtil.fromOccupancyEmoji(occupancy);
+                }
+            } else if (occupancy == null) {
                 // Fallback to DB
                 Optional<BusLocationHistory> history =
                         historyRepository.findTopByBusIdOrderByRecordedAtDesc(bus.getId());
                 if (history.isPresent()) {
                     occupancy = history.get().getOccupancyPercent();
-                    crowdLabel = CrowdLabelUtil.fromOccupancy(occupancy);
+                    crowdLabel = CrowdLabelUtil.fromOccupancyEmoji(occupancy);
                 }
             }
 
@@ -79,7 +97,7 @@ public class CommuterService {
                     .busId(bus.getId())
                     .busNumber(bus.getBusNumber())
                     .routeNumber(bus.getRoute().getRouteNumber())
-                    .eta("calculating...")
+                    .eta(eta)
                     .occupancyPercent(occupancy)
                     .crowdLabel(crowdLabel)
                     .status(bus.getStatus())
