@@ -1,0 +1,43 @@
+server:
+  port: ${GTFS_ADAPTER_PORT:8088}
+
+spring:
+  application:
+    name: gtfs-rt-adapter
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+      acks: 1
+      retries: 3
+
+# --- GTFS-RT Feed Configuration ---
+# NYC MTA Bus Time (free, requires API key from https://bt.mta.info/)
+# For keyless demo, uses the SIRI vehicle monitoring endpoint
+gtfs:
+  rt:
+    enabled: ${GTFS_RT_ENABLED:true}
+    vehicle-positions-url: ${GTFS_RT_URL:https://gtfsrt.prod.obanyc.com/vehiclePositions}
+    api-key: ${MTA_API_KEY:}
+    poll-interval-ms: ${GTFS_RT_POLL_MS:15000}
+    city-label: NYC
+    bus-id-offset: 100
+    route-id-offset: 100
+    # Filter to specific routes (comma-separated), empty = all
+    # Popular Manhattan routes: M15, M34, M42, M14, M23
+    route-filter: ${GTFS_RT_ROUTES:M15,M34,M42,M14,M23,B44,B46,Q58}
+
+logging:
+  level:
+    root: INFO
+    com.transitpulse.gtfsrtadapter: DEBUG

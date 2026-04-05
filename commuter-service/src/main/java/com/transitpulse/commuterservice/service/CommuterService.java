@@ -49,6 +49,23 @@ public class CommuterService {
                 .toList();
     }
 
+    public List<NearbyStopDto> findAllStops(double lat, double lng) {
+        List<Object[]> results = stopRepository.findAllStopsSortedByDistance(lat, lng);
+
+        return results.stream()
+                .map(row -> NearbyStopDto.builder()
+                        .stopId(((Number) row[0]).longValue())
+                        .stopName((String) row[1])
+                        .latitude(((Number) row[2]).doubleValue())
+                        .longitude(((Number) row[3]).doubleValue())
+                        .routeId(((Number) row[4]).longValue())
+                        .routeNumber((String) row[6])
+                        .routeName((String) row[7])
+                        .distanceMeters(((Number) row[8]).doubleValue())
+                        .build())
+                .toList();
+    }
+
     public List<IncomingBusDto> getIncomingBuses(Long stopId) {
         Stop stop = stopRepository.findById(stopId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stop", stopId));

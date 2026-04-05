@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgis/postgis:15-3.3
@@ -44,7 +42,7 @@ services:
       - zkdata:/var/lib/zookeeper/data
       - zklog:/var/lib/zookeeper/log
     healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181 | grep Zookeeper"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -95,7 +93,7 @@ services:
     volumes:
       - ollamadata:/root/.ollama
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
+      test: ["CMD", "ollama", "list"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -122,10 +120,11 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8081/api/buses || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8081/api/buses || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   occupancy-service:
     build: ./occupancy-service
@@ -141,15 +140,16 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
-      postgres:
+      bus-service:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8082/api/occupancy/health || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   commuter-service:
     build: ./commuter-service
@@ -167,15 +167,16 @@ services:
       AI_PREDICTION_SERVICE_URL: http://ai-prediction-service:8086
       NOTIFICATION_SERVICE_URL: http://notification-service:8087
     depends_on:
-      postgres:
+      bus-service:
         condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8083/api/commuter/stops/nearby?lat=21.14&lng=79.08&radiusMeters=5000 || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8083/api/commuter/health || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   ai-prediction-service:
     build: ./ai-prediction-service
@@ -192,17 +193,18 @@ services:
       REDIS_PORT: 6379
       OLLAMA_BASE_URL: http://ollama:11434
     depends_on:
-      postgres:
+      bus-service:
         condition: service_healthy
       redis:
         condition: service_healthy
       ollama:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8086/api/ai/health || exit 1"]
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8086/api/ai/health || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   gps-simulator:
     build: ./gps-simulator
@@ -237,12 +239,34 @@ services:
       REDIS_PORT: 6379
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     depends_on:
-      postgres:
+      bus-service:
         condition: service_healthy
       redis:
         condition: service_healthy
       kafka:
         condition: service_healthy
+
+  gtfs-rt-adapter:
+    build: ./gtfs-rt-adapter
+    container_name: transitpulse-gtfs-rt-adapter
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      GTFS_RT_ENABLED: ${GTFS_RT_ENABLED:-true}
+      GTFS_RT_URL: ${GTFS_RT_URL:-https://gtfsrt.prod.obanyc.com/vehiclePositions}
+      MTA_API_KEY: ${MTA_API_KEY:-}
+      GTFS_RT_ROUTES: ${GTFS_RT_ROUTES:-M15,M34,M42,M14,M23}
+      GTFS_RT_POLL_MS: ${GTFS_RT_POLL_MS:-15000}
+    depends_on:
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:8088/api/gtfs/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
 
   frontend:
     build: ./frontend

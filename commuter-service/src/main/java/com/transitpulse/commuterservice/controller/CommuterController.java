@@ -19,6 +19,18 @@ public class CommuterController {
     private final CommuterService commuterService;
     private final NotificationClient notificationClient;
 
+    @GetMapping("/health")
+    public ApiResponse<String> health() {
+        return ApiResponse.ok("UP");
+    }
+
+    @GetMapping("/stops")
+    public ApiResponse<List<NearbyStopDto>> getAllStops(
+            @RequestParam(defaultValue = "21.1458") double lat,
+            @RequestParam(defaultValue = "79.0882") double lng) {
+        return ApiResponse.ok(commuterService.findAllStops(lat, lng));
+    }
+
     @GetMapping("/stops/nearby")
     public ApiResponse<List<NearbyStopDto>> getNearbyStops(
             @RequestParam double lat,

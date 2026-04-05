@@ -6,7 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,5 +27,19 @@ public class LiveBusCacheReader {
     public Optional<BusEtaEvent> getEta(Long busId) {
         BusEtaEvent eta = etaRedisTemplate.opsForValue().get(ETA_KEY_PREFIX + busId);
         return Optional.ofNullable(eta);
+    }
+
+    public List<BusLocationEvent> getAllLiveBuses() {
+        Set<String> keys = liveBusRedisTemplate.keys(LIVE_KEY_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<BusLocationEvent> events = liveBusRedisTemplate.opsForValue().multiGet(keys);
+        if (events == null) {
+            return Collections.emptyList();
+        }
+        return events.stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 }

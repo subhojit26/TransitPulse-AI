@@ -15,6 +15,11 @@ public class OccupancyController {
 
     private final OccupancyService occupancyService;
 
+    @GetMapping("/health")
+    public ApiResponse<String> health() {
+        return ApiResponse.ok("Occupancy Service is running");
+    }
+
     @PostMapping("/update")
     public ApiResponse<OccupancyDto> updateOccupancy(
             @Valid @RequestBody OccupancyUpdateRequest request) {

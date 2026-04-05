@@ -27,6 +27,7 @@
         <module>stream-processor</module>
         <module>ai-prediction-service</module>
         <module>notification-service</module>
+        <module>gtfs-rt-adapter</module>
     </modules>
 
     <properties>

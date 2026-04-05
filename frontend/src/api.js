@@ -18,6 +18,9 @@ export const getStopsByRoute = (routeId) => api.get(`/routes/${routeId}/stops`).
 export const getNearbyStops = (lat, lng, radius = 500) =>
   api.get('/commuter/stops/nearby', { params: { lat, lng, radiusMeters: radius } }).then(r => r.data.data)
 
+export const getAllStops = (lat = 18.5204, lng = 73.8567) =>
+  api.get('/commuter/stops', { params: { lat, lng } }).then(r => r.data.data)
+
 export const getIncomingBuses = (stopId) =>
   api.get(`/commuter/stops/${stopId}/incoming-buses`).then(r => r.data.data)
 

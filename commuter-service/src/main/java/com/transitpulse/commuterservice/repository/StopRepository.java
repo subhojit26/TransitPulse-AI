@@ -17,13 +17,13 @@ public interface StopRepository extends JpaRepository<Stop, Long> {
                    r.route_number, r.route_name,
                    ST_Distance(
                        s.location,
-                       ST_MakePoint(:lng, :lat)::geography
+                       CAST(ST_MakePoint(:lng, :lat) AS geography)
                    ) as distance_meters
             FROM stops s
             JOIN routes r ON r.id = s.route_id
             WHERE ST_DWithin(
                 s.location,
-                ST_MakePoint(:lng, :lat)::geography,
+                CAST(ST_MakePoint(:lng, :lat) AS geography),
                 :radiusMeters
             )
             ORDER BY distance_meters
@@ -32,4 +32,20 @@ public interface StopRepository extends JpaRepository<Stop, Long> {
             @Param("lat") double lat,
             @Param("lng") double lng,
             @Param("radiusMeters") double radiusMeters);
+
+    @Query(value = """
+            SELECT s.id, s.stop_name, s.latitude, s.longitude,
+                   s.route_id, s.stop_sequence,
+                   r.route_number, r.route_name,
+                   ST_Distance(
+                       s.location,
+                       CAST(ST_MakePoint(:lng, :lat) AS geography)
+                   ) as distance_meters
+            FROM stops s
+            JOIN routes r ON r.id = s.route_id
+            ORDER BY distance_meters
+            """, nativeQuery = true)
+    List<Object[]> findAllStopsSortedByDistance(
+            @Param("lat") double lat,
+            @Param("lng") double lng);
 }

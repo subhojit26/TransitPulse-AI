@@ -16,6 +16,11 @@ public class AiPredictionController {
 
     private final AiEtaPredictionService predictionService;
 
+    @GetMapping("/health")
+    public ApiResponse<String> health() {
+        return ApiResponse.ok("AI Prediction Service is running");
+    }
+
     @GetMapping("/predict-eta")
     public ApiResponse<AiPrediction> predictEta(
             @RequestParam Long busId,

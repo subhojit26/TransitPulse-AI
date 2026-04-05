@@ -31,63 +31,98 @@ public class GpsSimulatorService {
     @Value("${simulator.interpolation-factor:0.10}")
     private double interpolationFactor;
 
-    @Value("${simulator.breakdown-probability:0.001}")
+    @Value("${simulator.breakdown-probability:0.0005}")
     private double breakdownProbability;
 
     @Value("${simulator.rush-hour-speed-factor:0.5}")
     private double rushHourSpeedFactor;
 
-    // Route 10: Sitabuldi - Automotive Square (8 stops)
-    private static final List<double[]> ROUTE_10_COORDS = List.of(
-            new double[]{21.1458, 79.0882},  // Sitabuldi Bus Stand
-            new double[]{21.1396, 79.0787},  // Variety Square
-            new double[]{21.1370, 79.0675},  // Law College Square
-            new double[]{21.1345, 79.0572},  // Shankar Nagar Square
-            new double[]{21.1289, 79.0480},  // Pratap Nagar Square
-            new double[]{21.1225, 79.0385},  // Trimurti Nagar
-            new double[]{21.1170, 79.0290},  // Manewada Square
-            new double[]{21.1102, 79.0195}   // Automotive Square
+    // ===== PUNE ROUTES (real road coordinates) =====
+
+    // Route P1: Swargate → Shivajinagar (via JM Road) — 8 stops
+    private static final List<double[]> PUNE_ROUTE_1 = List.of(
+            new double[]{18.5018, 73.8636},  // Swargate Bus Stand
+            new double[]{18.5065, 73.8610},  // Parvati Paytha
+            new double[]{18.5120, 73.8571},  // Sarasbaug
+            new double[]{18.5162, 73.8530},  // Shaniwar Wada
+            new double[]{18.5200, 73.8490},  // PMC Building (Deccan Gymkhana)
+            new double[]{18.5248, 73.8445},  // Garware Bridge
+            new double[]{18.5290, 73.8395},  // Agriculture College
+            new double[]{18.5308, 73.8363}   // Shivajinagar Bus Stand
     );
 
-    // Route 47B: Dharampeth - Hingna T-Point (7 stops)
-    private static final List<double[]> ROUTE_47B_COORDS = List.of(
-            new double[]{21.1510, 79.0780},  // Dharampeth Bus Stop
-            new double[]{21.1475, 79.0710},  // Telephone Exchange Sq.
-            new double[]{21.1430, 79.0630},  // Laxmi Nagar Square
-            new double[]{21.1380, 79.0545},  // Panchsheel Square
-            new double[]{21.1320, 79.0450},  // Nandanvan Colony
-            new double[]{21.1250, 79.0350},  // Wadi Bus Stop
-            new double[]{21.1180, 79.0255}   // Hingna T-Point
+    // Route P2: Katraj → Nigdi (via NH48) — 8 stops
+    private static final List<double[]> PUNE_ROUTE_2 = List.of(
+            new double[]{18.4578, 73.8660},  // Katraj Bus Stop
+            new double[]{18.4730, 73.8665},  // Bharati Vidyapeeth
+            new double[]{18.4885, 73.8650},  // Balaji Nagar
+            new double[]{18.5018, 73.8636},  // Swargate
+            new double[]{18.5355, 73.8410},  // Khadki
+            new double[]{18.5625, 73.8140},  // Dapodi
+            new double[]{18.5930, 73.7950},  // Pimpri Chinchwad
+            new double[]{18.6510, 73.7672}   // Nigdi Bus Stop
+    );
+
+    // ===== MUMBAI ROUTES (real road coordinates) =====
+
+    // Route M1: CST → Andheri (via Western Express Highway) — 8 stops
+    private static final List<double[]> MUMBAI_ROUTE_1 = List.of(
+            new double[]{18.9398, 72.8355},  // CST (Chhatrapati Shivaji Terminus)
+            new double[]{18.9440, 72.8240},  // Marine Lines
+            new double[]{18.9540, 72.8160},  // Mumbai Central
+            new double[]{18.9710, 72.8200},  // Dadar TT
+            new double[]{18.9932, 72.8226},  // Mahim Junction
+            new double[]{19.0176, 72.8420},  // Bandra Station
+            new double[]{19.0535, 72.8409},  // Vile Parle
+            new double[]{19.1190, 72.8465}   // Andheri Station
+    );
+
+    // Route M2: Dadar → BKC → Powai — 8 stops
+    private static final List<double[]> MUMBAI_ROUTE_2 = List.of(
+            new double[]{18.9710, 72.8200},  // Dadar TT
+            new double[]{18.9760, 72.8340},  // Sion
+            new double[]{18.9832, 72.8420},  // Chunabhatti
+            new double[]{19.0022, 72.8527},  // Kurla Station
+            new double[]{19.0544, 72.8688},  // Ghatkopar
+            new double[]{19.0640, 72.8770},  // Vikhroli
+            new double[]{19.0750, 72.8880},  // Kanjurmarg
+            new double[]{19.0760, 72.9050}   // Powai (Hiranandani)
     );
 
     @PostConstruct
     public void initBuses() {
-        // 3 buses on Route 10
-        activeBuses.add(new SimulatedBus(1L, "BUS-10-01", 1L, ROUTE_10_COORDS));
-        activeBuses.add(new SimulatedBus(2L, "BUS-10-02", 1L, ROUTE_10_COORDS));
-        // Start bus 2 midway
-        SimulatedBus bus2 = activeBuses.get(1);
-        bus2.setCurrentLat(21.1345);
-        bus2.setCurrentLng(79.0572);
-        bus2.setCurrentStopIndex(4);
+        // --- Pune buses ---
+        // 2 buses on Pune Route P1 (Swargate → Shivajinagar)
+        activeBuses.add(new SimulatedBus(1L, "PNQ-P1-01", 1L, PUNE_ROUTE_1));
+        activeBuses.add(new SimulatedBus(2L, "PNQ-P1-02", 1L, PUNE_ROUTE_1));
+        // Start bus 2 from midway
+        activeBuses.get(1).setCurrentLat(18.5162);
+        activeBuses.get(1).setCurrentLng(73.8530);
+        activeBuses.get(1).setCurrentStopIndex(4);
 
-        // 2 buses on Route 47B
-        activeBuses.add(new SimulatedBus(4L, "BUS-47B-01", 2L, ROUTE_47B_COORDS));
-        activeBuses.add(new SimulatedBus(5L, "BUS-47B-02", 2L, ROUTE_47B_COORDS));
-        // Start bus 5 midway
-        SimulatedBus bus5 = activeBuses.get(3);
-        bus5.setCurrentLat(21.1380);
-        bus5.setCurrentLng(79.0545);
-        bus5.setCurrentStopIndex(4);
+        // 2 buses on Pune Route P2 (Katraj → Nigdi)
+        activeBuses.add(new SimulatedBus(3L, "PNQ-P2-01", 2L, PUNE_ROUTE_2));
+        activeBuses.add(new SimulatedBus(4L, "PNQ-P2-02", 2L, PUNE_ROUTE_2));
+        activeBuses.get(3).setCurrentLat(18.5355);
+        activeBuses.get(3).setCurrentLng(73.8410);
+        activeBuses.get(3).setCurrentStopIndex(5);
 
-        // 5th bus on Route 10
-        SimulatedBus bus3 = new SimulatedBus(3L, "BUS-10-03", 1L, ROUTE_10_COORDS);
-        bus3.setCurrentLat(21.1225);
-        bus3.setCurrentLng(79.0385);
-        bus3.setCurrentStopIndex(6);
-        activeBuses.add(bus3);
+        // --- Mumbai buses ---
+        // 2 buses on Mumbai Route M1 (CST → Andheri)
+        activeBuses.add(new SimulatedBus(5L, "MUM-M1-01", 3L, MUMBAI_ROUTE_1));
+        activeBuses.add(new SimulatedBus(6L, "MUM-M1-02", 3L, MUMBAI_ROUTE_1));
+        activeBuses.get(5).setCurrentLat(18.9932);
+        activeBuses.get(5).setCurrentLng(72.8226);
+        activeBuses.get(5).setCurrentStopIndex(5);
 
-        log.info("Initialized {} simulated buses", activeBuses.size());
+        // 2 buses on Mumbai Route M2 (Dadar → Powai)
+        activeBuses.add(new SimulatedBus(7L, "MUM-M2-01", 4L, MUMBAI_ROUTE_2));
+        activeBuses.add(new SimulatedBus(8L, "MUM-M2-02", 4L, MUMBAI_ROUTE_2));
+        activeBuses.get(7).setCurrentLat(19.0544);
+        activeBuses.get(7).setCurrentLng(72.8688);
+        activeBuses.get(7).setCurrentStopIndex(5);
+
+        log.info("Initialized {} simulated buses (Pune: 4, Mumbai: 4)", activeBuses.size());
     }
 
     @Scheduled(fixedRateString = "${simulator.tick-rate-ms:3000}")
@@ -96,13 +131,26 @@ public class GpsSimulatorService {
 
         for (SimulatedBus bus : activeBuses) {
             if ("BREAKDOWN".equals(bus.getStatus())) {
-                // Don't publish — Redis TTL will expire naturally
+                // Auto-recover after 60 seconds
+                if (bus.getBreakdownTime() != null &&
+                        java.time.Instant.now().isAfter(bus.getBreakdownTime().plusSeconds(60))) {
+                    bus.setStatus("ACTIVE");
+                    bus.setBreakdownTime(null);
+                    // Reset to nearest stop
+                    double[] start = bus.getRouteCoordinates().get(0);
+                    bus.setCurrentLat(start[0]);
+                    bus.setCurrentLng(start[1]);
+                    bus.setCurrentStopIndex(1);
+                    log.info("Bus {} has recovered from breakdown, restarting route",
+                            bus.getBusNumber());
+                }
                 continue;
             }
 
-            // Random breakdown (0.1% chance per tick)
+            // Random breakdown (0.05% chance per tick — ~1 breakdown every 10 min per bus)
             if (ThreadLocalRandom.current().nextDouble() < breakdownProbability) {
                 bus.setStatus("BREAKDOWN");
+                bus.setBreakdownTime(java.time.Instant.now());
                 log.warn("Bus {} has broken down at ({}, {})",
                         bus.getBusNumber(), bus.getCurrentLat(), bus.getCurrentLng());
                 continue;

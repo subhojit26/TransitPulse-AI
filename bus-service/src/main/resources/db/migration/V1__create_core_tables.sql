@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 
 -- Bus routes
 CREATE TABLE routes (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     route_number VARCHAR(10) NOT NULL,
     route_name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
@@ -11,8 +11,8 @@ CREATE TABLE routes (
 
 -- Bus stops with PostGIS geography
 CREATE TABLE stops (
-    id SERIAL PRIMARY KEY,
-    route_id INT NOT NULL REFERENCES routes(id),
+    id BIGSERIAL PRIMARY KEY,
+    route_id BIGINT NOT NULL REFERENCES routes(id),
     stop_name VARCHAR(100) NOT NULL,
     stop_sequence INT NOT NULL,
     latitude DOUBLE PRECISION NOT NULL,
@@ -22,9 +22,9 @@ CREATE TABLE stops (
 
 -- Buses
 CREATE TABLE buses (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     bus_number VARCHAR(20) NOT NULL UNIQUE,
-    route_id INT NOT NULL REFERENCES routes(id),
+    route_id BIGINT NOT NULL REFERENCES routes(id),
     capacity INT DEFAULT 60,
     status VARCHAR(20) DEFAULT 'ACTIVE'
 );
@@ -32,7 +32,7 @@ CREATE TABLE buses (
 -- Location history (append-only)
 CREATE TABLE bus_location_history (
     id BIGSERIAL PRIMARY KEY,
-    bus_id INT NOT NULL REFERENCES buses(id),
+    bus_id BIGINT NOT NULL REFERENCES buses(id),
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,
     occupancy_percent INT,

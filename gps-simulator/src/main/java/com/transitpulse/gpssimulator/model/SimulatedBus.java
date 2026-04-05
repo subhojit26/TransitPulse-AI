@@ -2,6 +2,7 @@ package com.transitpulse.gpssimulator.model;
 
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -17,6 +18,7 @@ public class SimulatedBus {
     private int currentStopIndex; // index of the NEXT stop the bus is heading toward
     private int occupancyPercent;
     private String status; // ACTIVE, BREAKDOWN
+    private Instant breakdownTime; // when the bus broke down (null if active)
 
     public SimulatedBus(Long busId, String busNumber, Long routeId,
                         List<double[]> routeCoordinates) {

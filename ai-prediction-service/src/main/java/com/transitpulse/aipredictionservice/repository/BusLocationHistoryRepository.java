@@ -12,13 +12,13 @@ import java.util.List;
 @Repository
 public interface BusLocationHistoryRepository extends JpaRepository<BusLocationHistory, Long> {
 
-    @Query("""
-            SELECT h FROM BusLocationHistory h
-            WHERE h.bus.id = :busId
-            AND h.recordedAt >= :since
-            AND FUNCTION('EXTRACT', HOUR FROM h.recordedAt) BETWEEN :hourStart AND :hourEnd
-            ORDER BY h.recordedAt DESC
-            """)
+    @Query(value = """
+            SELECT * FROM bus_location_history h
+            WHERE h.bus_id = :busId
+            AND h.recorded_at >= :since
+            AND EXTRACT(HOUR FROM h.recorded_at) BETWEEN :hourStart AND :hourEnd
+            ORDER BY h.recorded_at DESC
+            """, nativeQuery = true)
     List<BusLocationHistory> findHistoricalArrivals(
             @Param("busId") Long busId,
             @Param("since") LocalDateTime since,

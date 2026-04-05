@@ -62,9 +62,11 @@ public class StopUpdateScheduler {
     @Scheduled(fixedRate = 3000)
     public void pushLiveBusPositions() {
         List<Bus> allBuses = busRepository.findAll();
+        Set<Long> dbBusIds = new HashSet<>();
         List<Map<String, Object>> liveBuses = new ArrayList<>();
 
         for (Bus bus : allBuses) {
+            dbBusIds.add(bus.getId());
             Optional<BusLocationEvent> loc = liveBusCacheReader.getLiveLocation(bus.getId());
             if (loc.isEmpty()) continue;
 
@@ -78,8 +80,31 @@ public class StopUpdateScheduler {
             entry.put("crowdLabel", CrowdLabelUtil.fromOccupancyEmoji(
                     e.getOccupancyPercent() != null ? e.getOccupancyPercent() : 0));
             entry.put("status", bus.getStatus());
+            entry.put("speed", e.getSpeed());
 
             Optional<BusEtaEvent> eta = liveBusCacheReader.getEta(bus.getId());
+            eta.ifPresent(etaEvt -> entry.put("etaMinutes", etaEvt.getEtaMinutes()));
+
+            liveBuses.add(entry);
+        }
+
+        // Include GTFS-RT buses that exist only in Redis (e.g., NYC MTA live buses)
+        List<BusLocationEvent> allRedis = liveBusCacheReader.getAllLiveBuses();
+        for (BusLocationEvent e : allRedis) {
+            if (e.getBusId() == null || dbBusIds.contains(e.getBusId())) continue;
+
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("busId", e.getBusId());
+            entry.put("busNumber", e.getBusNumber());
+            entry.put("latitude", e.getLatitude());
+            entry.put("longitude", e.getLongitude());
+            entry.put("occupancyPercent", e.getOccupancyPercent());
+            entry.put("crowdLabel", CrowdLabelUtil.fromOccupancyEmoji(
+                    e.getOccupancyPercent() != null ? e.getOccupancyPercent() : 0));
+            entry.put("status", "ACTIVE");
+            entry.put("speed", e.getSpeed());
+
+            Optional<BusEtaEvent> eta = liveBusCacheReader.getEta(e.getBusId());
             eta.ifPresent(etaEvt -> entry.put("etaMinutes", etaEvt.getEtaMinutes()));
 
             liveBuses.add(entry);
