@@ -21,6 +21,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: transitpulse-redis
+    command: redis-server --notify-keyspace-events KEx
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
@@ -86,9 +87,23 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
 
+  ollama:
+    image: ollama/ollama
+    container_name: transitpulse-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollamadata:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
 volumes:
   pgdata:
   redisdata:
   zkdata:
   zklog:
   kafkadata:
+  ollamadata:

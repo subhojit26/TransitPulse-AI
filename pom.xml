@@ -25,6 +25,8 @@
         <module>commuter-service</module>
         <module>gps-simulator</module>
         <module>stream-processor</module>
+        <module>ai-prediction-service</module>
+        <module>notification-service</module>
     </modules>
 
     <properties>

@@ -1,8 +1,10 @@
 package com.transitpulse.commuterservice.controller;
 
+import com.transitpulse.common.dto.AlertDto;
 import com.transitpulse.common.dto.ApiResponse;
 import com.transitpulse.common.dto.IncomingBusDto;
 import com.transitpulse.common.dto.NearbyStopDto;
+import com.transitpulse.commuterservice.client.NotificationClient;
 import com.transitpulse.commuterservice.service.CommuterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.List;
 public class CommuterController {
 
     private final CommuterService commuterService;
+    private final NotificationClient notificationClient;
 
     @GetMapping("/stops/nearby")
     public ApiResponse<List<NearbyStopDto>> getNearbyStops(
@@ -27,5 +30,12 @@ public class CommuterController {
     @GetMapping("/stops/{stopId}/incoming-buses")
     public ApiResponse<List<IncomingBusDto>> getIncomingBuses(@PathVariable Long stopId) {
         return ApiResponse.ok(commuterService.getIncomingBuses(stopId));
+    }
+
+    @GetMapping("/stops/{stopId}/alerts")
+    public ApiResponse<List<AlertDto>> getStopAlerts(
+            @PathVariable Long stopId,
+            @RequestParam(defaultValue = "10") int last) {
+        return ApiResponse.ok(notificationClient.getRecentAlerts(stopId));
     }
 }

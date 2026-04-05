@@ -1,20 +1,18 @@
-package com.transitpulse.commuterservice;
+package com.transitpulse.aipredictionservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = {
-        "com.transitpulse.commuterservice",
+        "com.transitpulse.aipredictionservice",
         "com.transitpulse.common.exception"
 })
 @EntityScan(basePackages = "com.transitpulse.common.entity")
-@EnableJpaRepositories(basePackages = "com.transitpulse.commuterservice.repository")
-@EnableScheduling
-public class CommuterServiceApplication {
+@EnableJpaRepositories(basePackages = "com.transitpulse.aipredictionservice.repository")
+public class AiPredictionServiceApplication {
     public static void main(String[] args) {
-        SpringApplication.run(CommuterServiceApplication.class, args);
+        SpringApplication.run(AiPredictionServiceApplication.class, args);
     }
 }
