@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gps-simulator
+  namespace: bus-tracking
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gps-simulator
+  template:
+    metadata:
+      labels:
+        app: gps-simulator
+    spec:
+      containers:
+        - name: gps-simulator
+          image: transitpulse/gps-simulator:latest
+          envFrom:
+            - configMapRef:
+                name: app-config
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi

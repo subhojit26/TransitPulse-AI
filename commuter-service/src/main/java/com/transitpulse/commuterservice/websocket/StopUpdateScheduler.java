@@ -59,6 +59,38 @@ public class StopUpdateScheduler {
         }
     }
 
+    @Scheduled(fixedRate = 3000)
+    public void pushLiveBusPositions() {
+        List<Bus> allBuses = busRepository.findAll();
+        List<Map<String, Object>> liveBuses = new ArrayList<>();
+
+        for (Bus bus : allBuses) {
+            Optional<BusLocationEvent> loc = liveBusCacheReader.getLiveLocation(bus.getId());
+            if (loc.isEmpty()) continue;
+
+            BusLocationEvent e = loc.get();
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("busId", bus.getId());
+            entry.put("busNumber", bus.getBusNumber());
+            entry.put("latitude", e.getLatitude());
+            entry.put("longitude", e.getLongitude());
+            entry.put("occupancyPercent", e.getOccupancyPercent());
+            entry.put("crowdLabel", CrowdLabelUtil.fromOccupancyEmoji(
+                    e.getOccupancyPercent() != null ? e.getOccupancyPercent() : 0));
+            entry.put("status", bus.getStatus());
+
+            Optional<BusEtaEvent> eta = liveBusCacheReader.getEta(bus.getId());
+            eta.ifPresent(etaEvt -> entry.put("etaMinutes", etaEvt.getEtaMinutes()));
+
+            liveBuses.add(entry);
+        }
+
+        if (!liveBuses.isEmpty()) {
+            messagingTemplate.convertAndSend("/topic/buses/live", liveBuses);
+            log.debug("Pushed {} live bus positions", liveBuses.size());
+        }
+    }
+
     private void pushUpdateForStop(Stop stop) {
         Long routeId = stop.getRoute().getId();
         List<Bus> activeBuses = busRepository.findActiveByRouteId(routeId);

@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+:root {
+  --navy: #0f172a;
+  --navy-light: #1e293b;
+  --navy-lighter: #334155;
+  --orange: #f97316;
+  --orange-dark: #ea580c;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--navy);
+  color: #e2e8f0;
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.leaflet-popup-content-wrapper {
+  background: var(--navy-light);
+  color: #e2e8f0;
+  border-radius: 0.5rem;
+  border: 1px solid var(--navy-lighter);
+}
+
+.leaflet-popup-tip {
+  background: var(--navy-light);
+}
+
+/* Pulse animation */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 1.5s ease-in-out infinite;
+}

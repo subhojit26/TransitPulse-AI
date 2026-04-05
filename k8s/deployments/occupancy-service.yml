@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: occupancy-service
+  namespace: bus-tracking
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: occupancy-service
+  template:
+    metadata:
+      labels:
+        app: occupancy-service
+    spec:
+      containers:
+        - name: occupancy-service
+          image: transitpulse/occupancy-service:latest
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: db-secrets
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: occupancy-service
+  namespace: bus-tracking
+spec:
+  selector:
+    app: occupancy-service
+  ports:
+    - port: 8082
+      targetPort: 8082
